@@ -17,6 +17,7 @@ spring:
       - jwt
       - eureka
       - actuator
+      - swagger
 
 
 logging:
