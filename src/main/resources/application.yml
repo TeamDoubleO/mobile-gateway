@@ -1,12 +1,17 @@
 spring:
   application:
     name: api-gateway
+
+  config:
+    import: optional:configserver:${CONFIG_SERVER_URL}
+
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:local}
     include:
       - jwt
       - eureka
       - actuator
+
 logging:
   level:
     org.springframework.cloud.gateway: DEBUG
