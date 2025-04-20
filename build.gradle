@@ -21,6 +21,9 @@ configurations {
 
 repositories {
     mavenCentral()
+    maven { url 'https://repo.spring.io/release' }
+//    maven { url 'https://repo.spring.io/milestone' }
+//    maven { url 'https://repo.spring.io/snapshot' }
 }
 
 ext {
@@ -44,8 +47,8 @@ dependencies {
     implementation 'io.micrometer:micrometer-core'
     implementation 'io.micrometer:micrometer-registry-prometheus'
 
-    //swagger
-    implementation 'org.springdoc:springdoc-openapi-starter-gateway-ui:2.2.0'
+//    //swagger
+//    implementation 'org.springdoc:springdoc-openapi-starter-gateway-ui:2.1.0'
 }
 
 dependencyManagement {
