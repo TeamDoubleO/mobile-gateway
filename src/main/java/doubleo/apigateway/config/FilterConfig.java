@@ -13,17 +13,17 @@ public class FilterConfig {
     @Bean
     public RouteLocator gatewayRoutes(RouteLocatorBuilder builder) {
         return builder.routes()
-                .route("member-service", r -> r.path("/member/**")
+                .route("member-service", r -> r.path("/members/**")
                         .uri("lb://member-service"))
-                .route("did-service", r -> r.path("/did/**")
+                .route("did-service", r -> r.path("/dids/**")
                         .uri("lb://did-service"))
-                .route("admin-service", r -> r.path("/admin/**")
+                .route("admin-service", r -> r.path("/admins/**")
                         .uri("lb://admin-service"))
-                .route("hospital-service", r -> r.path("/hospital/**")
+                .route("hospital-service", r -> r.path("/hospitals/**")
                         .uri("lb://hospital-service"))
-                .route("patient-service", r -> r.path("/patient/**")
+                .route("patient-service", r -> r.path("/patients/**")
                         .uri("lb://patient-service"))
-                .route("pass-service", r -> r.path("/pass/**")
+                .route("pass-service", r -> r.path("/passes/**")
                         .uri("lb://pass-service"))
                 //swagger routing
                 .route("swagger_member", r -> r.path("/v3/api-docs/member")
