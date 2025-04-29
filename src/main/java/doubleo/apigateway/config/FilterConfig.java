@@ -15,6 +15,8 @@ public class FilterConfig {
         return builder.routes()
                 .route("member-service", r -> r.path("/members/**")
                         .uri("lb://MEMBER-SERVICE"))
+                .route("member-service", r -> r.path("/auth/**")
+                            .uri("lb://MEMBER-SERVICE"))
                 .route("did-service", r -> r.path("/dids/**")
                         .uri("lb://DID-SERVICE"))
                 .route("admin-service", r -> r.path("/admins/**")
