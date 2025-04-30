@@ -46,8 +46,8 @@ dependencies {
     implementation 'io.micrometer:micrometer-core'
     implementation 'io.micrometer:micrometer-registry-prometheus'
 
-//    //swagger
-//    implementation 'org.springdoc:springdoc-openapi-starter-gateway-ui:2.1.0'
+    //swagger
+    implementation 'org.springdoc:springdoc-openapi-starter-gateway-ui:2.1.0'
 }
 
 dependencyManagement {
