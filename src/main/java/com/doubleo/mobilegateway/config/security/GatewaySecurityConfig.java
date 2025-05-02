@@ -2,12 +2,13 @@ package com.doubleo.mobilegateway.config.security;
 
 import static org.springframework.http.HttpHeaders.SET_COOKIE;
 
-import com.doubleo.mobilegateway.infra.config.gateway.GatewayPathProperties;
+import com.doubleo.mobilegateway.filter.JwtAuthenticationFilter;
+import com.doubleo.mobilegateway.infra.config.route.GatewayPathProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
@@ -19,6 +20,7 @@ import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 @RequiredArgsConstructor
 public class GatewaySecurityConfig {
 
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final GatewayPathProperties paths;
 
     @Bean
@@ -28,50 +30,41 @@ public class GatewaySecurityConfig {
                 .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeExchange(
-                        ex -> {
-                            paths.publicEndpoints()
+                        exchange -> {
+                            // public endpoints
+                            paths.getPublicEndpoints()
                                     .forEach(
-                                            ep -> {
-                                                if (ep.methods().contains("*")) {
-                                                    ex.pathMatchers(ep.path()).permitAll();
-                                                } else {
-                                                    ep.methods().stream()
-                                                            .map(String::toUpperCase)
-                                                            .map(HttpMethod::valueOf)
-                                                            .forEach(
-                                                                    m ->
-                                                                            ex.pathMatchers(
-                                                                                            m,
-                                                                                            ep
-                                                                                                    .path())
-                                                                                    .permitAll());
-                                                }
+                                            route -> {
+                                                route.getMethods()
+                                                        .forEach(
+                                                                method ->
+                                                                        exchange.pathMatchers(
+                                                                                        method,
+                                                                                        route
+                                                                                                .getPath())
+                                                                                .permitAll());
                                             });
 
-                            paths.protectedEndpoints()
+                            // protected endpoints
+                            paths.getProtectedEndpoints()
                                     .forEach(
-                                            ep -> {
-                                                if (ep.methods().contains("*")) {
-                                                    ex.pathMatchers(ep.path()).authenticated();
-                                                } else {
-                                                    ep.methods().stream()
-                                                            .map(String::toUpperCase)
-                                                            .map(HttpMethod::valueOf)
-                                                            .forEach(
-                                                                    m ->
-                                                                            ex.pathMatchers(
-                                                                                            m,
-                                                                                            ep
-                                                                                                    .path())
-                                                                                    .authenticated());
-                                                }
+                                            route -> {
+                                                route.getMethods()
+                                                        .forEach(
+                                                                method ->
+                                                                        exchange.pathMatchers(
+                                                                                        method,
+                                                                                        route
+                                                                                                .getPath())
+                                                                                .authenticated());
                                             });
 
-                            //                            ex.anyExchange().authenticated();
-                            ex.anyExchange().permitAll();
+                            // catch-all
+                            exchange.anyExchange().denyAll();
                         });
 
-        return http.build();
+        return http.addFilterAt(jwtAuthenticationFilter, SecurityWebFiltersOrder.AUTHENTICATION)
+                .build();
     }
 
     @Bean
