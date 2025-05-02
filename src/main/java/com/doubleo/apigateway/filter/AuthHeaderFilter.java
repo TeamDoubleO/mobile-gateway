@@ -7,6 +7,8 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import java.nio.charset.StandardCharsets;
+import javax.crypto.SecretKey;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -19,9 +21,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-
-import javax.crypto.SecretKey;
-import java.nio.charset.StandardCharsets;
 
 @Slf4j
 @Component
@@ -39,7 +38,7 @@ public class AuthHeaderFilter implements GlobalFilter, Ordered {
         String path = exchange.getRequest().getPath().value();
         String method = exchange.getRequest().getMethod().name();
 
-        //public endpoints 등록된 url -> 다음 체인으로 넘기지 x
+        // public endpoints 등록된 url -> 다음 체인으로 넘기지 x
         for (var ep : paths.publicEndpoints()) {
             if (matcher.match(ep.path(), path)
                     && (ep.methods().contains("*") || ep.methods().contains(method))) {
@@ -48,7 +47,6 @@ public class AuthHeaderFilter implements GlobalFilter, Ordered {
         }
 
         String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
-
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             log.warn("No or invalid Authorization header");
@@ -65,18 +63,16 @@ public class AuthHeaderFilter implements GlobalFilter, Ordered {
         }
 
         try {
-            SecretKey key = Keys.hmacShaKeyFor(jwtProperties.accessTokenSecret().getBytes(StandardCharsets.UTF_8));
-            Claims claims = Jwts.parserBuilder()
-                    .setSigningKey(key)
-                    .build()
-                    .parseClaimsJws(token)
-                    .getBody();
+            SecretKey key =
+                    Keys.hmacShaKeyFor(
+                            jwtProperties.accessTokenSecret().getBytes(StandardCharsets.UTF_8));
+            Claims claims =
+                    Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
 
             String memberId = claims.getSubject();
 
-            ServerHttpRequest mutatedRequest = request.mutate()
-                    .header("X-Member-Id", memberId)
-                    .build();
+            ServerHttpRequest mutatedRequest =
+                    request.mutate().header("X-Member-Id", memberId).build();
 
             return chain.filter(exchange.mutate().request(mutatedRequest).build());
 
