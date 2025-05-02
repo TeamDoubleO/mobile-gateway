@@ -1,4 +1,4 @@
-package com.doubleo.apigateway.infra.config.gateway;
+package com.doubleo.mobilegateway.infra.config.gateway;
 
 import java.util.List;
 import org.springframework.boot.context.properties.ConfigurationProperties;

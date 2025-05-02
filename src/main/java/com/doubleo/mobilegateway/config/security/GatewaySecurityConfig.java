@@ -1,8 +1,8 @@
-package com.doubleo.apigateway.config.security;
+package com.doubleo.mobilegateway.config.security;
 
 import static org.springframework.http.HttpHeaders.SET_COOKIE;
 
-import com.doubleo.apigateway.infra.config.gateway.GatewayPathProperties;
+import com.doubleo.mobilegateway.infra.config.gateway.GatewayPathProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -67,7 +67,8 @@ public class GatewaySecurityConfig {
                                                 }
                                             });
 
-                            ex.anyExchange().authenticated();
+                            //                            ex.anyExchange().authenticated();
+                            ex.anyExchange().permitAll();
                         });
 
         return http.build();
