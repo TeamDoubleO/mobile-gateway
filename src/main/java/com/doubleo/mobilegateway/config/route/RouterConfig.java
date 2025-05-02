@@ -1,4 +1,4 @@
-package com.doubleo.apigateway.config.route;
+package com.doubleo.mobilegateway.config.route;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;

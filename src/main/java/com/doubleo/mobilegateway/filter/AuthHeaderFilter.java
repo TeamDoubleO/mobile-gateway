@@ -1,8 +1,8 @@
-package com.doubleo.apigateway.filter;
+package com.doubleo.mobilegateway.filter;
 
-import com.doubleo.apigateway.infra.config.gateway.GatewayPathProperties;
-import com.doubleo.apigateway.infra.config.jwt.JwtProperties;
-import com.doubleo.apigateway.infra.config.redis.BlackListTokenService;
+import com.doubleo.mobilegateway.infra.config.gateway.GatewayPathProperties;
+import com.doubleo.mobilegateway.infra.config.jwt.JwtProperties;
+import com.doubleo.mobilegateway.infra.config.redis.BlackListTokenService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;

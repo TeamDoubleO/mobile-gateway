@@ -1,4 +1,4 @@
-package com.doubleo.apigateway.infra.config.redis;
+package com.doubleo.mobilegateway.infra.config.redis;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
