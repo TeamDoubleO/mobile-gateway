@@ -1,11 +1,14 @@
-package org.example.apigateway.filter;
+package com.doubleo.apigateway.filter;
 
+import com.doubleo.apigateway.infra.config.gateway.GatewayPathProperties;
+import com.doubleo.apigateway.infra.config.jwt.JwtProperties;
+import com.doubleo.apigateway.infra.config.redis.BlackListTokenService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
@@ -19,34 +22,33 @@ import reactor.core.publisher.Mono;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 
-@Component
 @Slf4j
+@Component
+@RequiredArgsConstructor
 public class AuthHeaderFilter implements GlobalFilter, Ordered {
 
-    @Value("${token.secret}")
-    private String secretKey;
-
-    private final AntPathMatcher pathMatcher = new AntPathMatcher();
-
-    private static final List<String> WHITELIST = List.of(
-            "/auth/**",
-            "/login/**",
-            "/social-login/**"
-    );
+    private final GatewayPathProperties paths;
+    private final BlackListTokenService blackListTokenService;
+    private final JwtProperties jwtProperties;
+    private final AntPathMatcher matcher = new AntPathMatcher();
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
-        String path = request.getPath().value();
-        String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+        String path = exchange.getRequest().getPath().value();
+        String method = exchange.getRequest().getMethod().name();
 
-        for (String pattern : WHITELIST) {
-            if (pathMatcher.match(pattern, path)) {
-                return chain.filter(exchange); // 화이트리스트는 통과
+        //public endpoints 등록된 url -> 다음 체인으로 넘기지 x
+        for (var ep : paths.publicEndpoints()) {
+            if (matcher.match(ep.path(), path)
+                    && (ep.methods().contains("*") || ep.methods().contains(method))) {
+                return chain.filter(exchange);
             }
         }
+
+        String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             log.warn("No or invalid Authorization header");
@@ -54,9 +56,16 @@ public class AuthHeaderFilter implements GlobalFilter, Ordered {
             return exchange.getResponse().setComplete();
         }
 
+        String token = authHeader.substring(7);
+
+        if (blackListTokenService.existsByToken(token)) {
+            log.warn("Token is blacklisted: {}", token);
+            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+            return exchange.getResponse().setComplete();
+        }
+
         try {
-            String token = authHeader.substring(7);
-            SecretKey key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
+            SecretKey key = Keys.hmacShaKeyFor(jwtProperties.accessTokenSecret().getBytes(StandardCharsets.UTF_8));
             Claims claims = Jwts.parserBuilder()
                     .setSigningKey(key)
                     .build()
@@ -64,13 +73,6 @@ public class AuthHeaderFilter implements GlobalFilter, Ordered {
                     .getBody();
 
             String memberId = claims.getSubject();
-            String role = claims.get("role", String.class);
-
-            if (pathMatcher.match("/admin/**", path) && !"ADMIN".equalsIgnoreCase(role)) {
-                log.warn("Forbidden: Not an ADMIN user");
-                exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
-                return exchange.getResponse().setComplete();
-            }
 
             ServerHttpRequest mutatedRequest = request.mutate()
                     .header("X-Member-Id", memberId)
@@ -87,8 +89,6 @@ public class AuthHeaderFilter implements GlobalFilter, Ordered {
 
     @Override
     public int getOrder() {
-        return -1; // 가장 먼저 실행되도록 설정
+        return Ordered.HIGHEST_PRECEDENCE;
     }
-
-
 }

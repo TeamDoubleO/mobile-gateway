@@ -1,6 +1,6 @@
-package com.doubleo.memberservice.domain.auth.repository;
+package com.doubleo.apigateway.infra.config.redis;
 
-import com.doubleo.memberservice.domain.auth.domain.BlackListToken;
+
 import org.springframework.data.repository.CrudRepository;
 
 public interface BlackListTokenRepository extends CrudRepository<BlackListToken, String> {}

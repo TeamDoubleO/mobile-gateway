@@ -1,4 +1,4 @@
-package com.doubleo.memberservice.infra.config.redis;
+package com.doubleo.apigateway.infra.config.redis;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

@@ -1,4 +1,4 @@
-package com.doubleo.memberservice.domain.auth.domain;
+package com.doubleo.apigateway.infra.config.redis;
 
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -19,9 +19,5 @@ public class BlackListToken {
     private BlackListToken(String token, long ttl) {
         this.token = token;
         this.ttl = ttl;
-    }
-
-    public static BlackListToken createBlackListToken(String token, Long ttl) {
-        return builder().token(token).ttl(ttl).build();
     }
 }
