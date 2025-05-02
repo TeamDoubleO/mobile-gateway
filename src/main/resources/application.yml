@@ -1,6 +1,6 @@
 spring:
   application:
-    name: api-gateway
+    name: mobile-gateway
 
   config:
     import: optional:configserver:${CONFIG_SERVER_URL}
@@ -14,11 +14,12 @@ spring:
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:local}
     include:
-      - jwt
       - eureka
       - actuator
       - swagger
-
+      - security
+      - redis
+      - routes
 
 logging:
   level:
