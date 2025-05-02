@@ -1,2 +1,2 @@
-# api-gateway
-API gateway
+# mobile-gateway
+API gateway(Mobile)
