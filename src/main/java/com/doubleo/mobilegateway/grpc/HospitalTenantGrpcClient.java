@@ -1,10 +1,9 @@
 package com.doubleo.mobilegateway.grpc;
 
-import com.doubleo.mobilegateway.global.exception.CommonException;
-import com.doubleo.mobilegateway.global.exception.errorcode.GrpcErrorCode;
 import com.doubleo.tenantservice.domain.tenant.grpc.HospitalIdToTenantIdRequest;
 import com.doubleo.tenantservice.domain.tenant.grpc.HospitalIdToTenantIdResponse;
 import com.doubleo.tenantservice.domain.tenant.grpc.HospitalTenantServiceGrpc;
+import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,8 +25,9 @@ public class HospitalTenantGrpcClient {
                     HospitalIdToTenantIdRequest.newBuilder().setHospitalId(hospitalId).build();
             HospitalIdToTenantIdResponse response = tenantStub.getTenantIdByHospitalId(request);
             return response.getTenantId();
-        } catch (StatusRuntimeException e) {
-            throw new CommonException(GrpcErrorCode.GRPC_SERVER_RESPONSE_FAILED);
+        } catch (Exception e) {
+            throw new StatusRuntimeException(
+                    Status.INTERNAL.withDescription(e.getMessage()).withCause(e));
         }
     }
 }
