@@ -1,5 +1,6 @@
 package com.doubleo.mobilegateway.filter;
 
+import com.doubleo.mobilegateway.grpc.HospitalTenantGrpcClient;
 import com.doubleo.mobilegateway.infra.config.jwt.JwtProperties;
 import com.doubleo.mobilegateway.infra.config.redis.BlackListTokenService;
 import io.jsonwebtoken.Claims;
@@ -30,11 +31,16 @@ public class JwtAuthenticationFilter implements WebFilter {
 
     private final JwtProperties jwtProperties;
     private final BlackListTokenService blackListTokenService;
+    private final HospitalTenantGrpcClient tenantGrpcClient;
+
+    private static final String HOSPITAL_ID_HEADER = "X-Hospital-Id";
+    private static final String TENANT_ID_HEADER = "X-Tenant-Id";
 
     @Override
     public @NonNull Mono<Void> filter(
             @NonNull ServerWebExchange exchange, @NonNull WebFilterChain chain) {
         String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+        String hospitalIdHeader = exchange.getRequest().getHeaders().getFirst(HOSPITAL_ID_HEADER);
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return chain.filter(exchange);
@@ -58,15 +64,33 @@ public class JwtAuthenticationFilter implements WebFilter {
                     new UsernamePasswordAuthenticationToken(
                             memberId, null, Collections.emptyList());
 
-            ServerHttpRequest mutatedRequest =
-                    exchange.getRequest().mutate().header("X-Member-Id", memberId).build();
+            // hospitalId->tenantId
+            Long hospitalId = hospitalIdHeader != null ? Long.parseLong(hospitalIdHeader) : null;
 
-            ServerWebExchange mutatedExchange = exchange.mutate().request(mutatedRequest).build();
+            return Mono.fromCallable(
+                            () -> {
+                                if (hospitalId != null) {
+                                    return tenantGrpcClient.getTenantIdByHospitalId(hospitalId);
+                                }
+                                return "";
+                            })
+                    .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
+                    .flatMap(
+                            tenantId -> {
+                                ServerHttpRequest mutatedRequest =
+                                        exchange.getRequest()
+                                                .mutate()
+                                                .header("X-Member-Id", memberId)
+                                                .header(TENANT_ID_HEADER, tenantId)
+                                                .build();
+                                ServerWebExchange mutatedExchange =
+                                        exchange.mutate().request(mutatedRequest).build();
 
-            return chain.filter(mutatedExchange)
-                    .contextWrite(
-                            ReactiveSecurityContextHolder.withSecurityContext(
-                                    Mono.just(new SecurityContextImpl(auth))));
+                                return chain.filter(mutatedExchange)
+                                        .contextWrite(
+                                                ReactiveSecurityContextHolder.withSecurityContext(
+                                                        Mono.just(new SecurityContextImpl(auth))));
+                            });
 
         } catch (JwtException e) {
             log.warn("JWT validation failed: {}", e.getMessage());

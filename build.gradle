@@ -22,6 +22,14 @@ configurations {
 
 repositories {
     mavenCentral()
+    maven {
+        name = 'GitHubPackages'
+        url  = uri('https://maven.pkg.github.com/TeamDoubleO/grpc-interfaces')
+        credentials {
+            username = System.getenv("GIT_USERNAME") ?: project.findProperty("gpr.user")
+            password = System.getenv("GIT_TOKEN") ?: project.findProperty("gpr.key")
+        }
+    }
 }
 
 ext {
@@ -68,6 +76,19 @@ dependencies {
 
     //gateway
     annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
+
+    //gRPC
+    //모듈
+    implementation "com.doubleo.grpc:tenant-interface:0.0.9.1"
+
+    //gRPC 런타임
+    implementation "io.grpc:grpc-netty:1.63.0"
+    implementation "io.grpc:grpc-protobuf:1.63.0"
+    implementation "io.grpc:grpc-stub:1.63.0"
+
+    //Spring Boot starter for gRPC 서버/클라이언트 자동설정
+    implementation 'com.google.protobuf:protobuf-java:4.28.2'
+    implementation 'net.devh:grpc-client-spring-boot-starter:3.1.0.RELEASE'
 }
 
 dependencyManagement {
