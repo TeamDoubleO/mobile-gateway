@@ -6,6 +6,8 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.ws.rs.core.HttpHeaders;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.List;
 import java.util.function.Predicate;
 import lombok.Data;
 import org.springframework.cloud.gateway.handler.predicate.AbstractRoutePredicateFactory;
@@ -24,6 +26,11 @@ public class PlatformRoutePredicateFactory
     }
 
     @Override
+    public List<String> shortcutFieldOrder() {
+        return Collections.singletonList("platform");
+    }
+
+
     public Predicate<ServerWebExchange> apply(Config config) {
         return exchange -> {
             String authHeader =
