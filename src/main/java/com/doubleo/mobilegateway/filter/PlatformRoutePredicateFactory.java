@@ -30,7 +30,7 @@ public class PlatformRoutePredicateFactory
         return Collections.singletonList("platform");
     }
 
-    @Override
+
     public Predicate<ServerWebExchange> apply(Config config) {
         return exchange -> {
             String authHeader =
