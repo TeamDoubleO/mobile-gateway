@@ -28,7 +28,6 @@ jobs:
       - name: Run SpotlessApply
         run: ./gradlew spotlessApply
 
-
       - name: Run tests
         run: ./gradlew test
 
