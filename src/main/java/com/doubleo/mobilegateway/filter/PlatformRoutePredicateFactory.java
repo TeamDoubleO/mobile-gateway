@@ -4,13 +4,13 @@ import com.doubleo.mobilegateway.infra.config.jwt.JwtProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import jakarta.ws.rs.core.HttpHeaders;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 import lombok.Data;
 import org.springframework.cloud.gateway.handler.predicate.AbstractRoutePredicateFactory;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -29,7 +29,6 @@ public class PlatformRoutePredicateFactory
     public List<String> shortcutFieldOrder() {
         return Collections.singletonList("platform");
     }
-
 
     public Predicate<ServerWebExchange> apply(Config config) {
         return exchange -> {
